@@ -58,18 +58,32 @@ namespace FlowerMarket.Web.Api
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
+                    Version =  Configuration.GetSection("AppVersion").Value,
                     Title = Configuration.GetSection("SwaggerTitle").Value,
-                    Version = Configuration.GetSection("AppVersion").Value
+                    Contact = new OpenApiContact()
+                    {
+                        Name = "Mustafa Arýkçý",
+                        Url = new Uri("http://www.happypawsapp.com")
+                    }
                 });
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                var securitySchema = new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 12345abcdef')",
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-                });
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                };
+                c.AddSecurityDefinition("Bearer", securitySchema);
 
+                var securityRequirement = new OpenApiSecurityRequirement();
+                securityRequirement.Add(securitySchema, new[] { "Bearer" });
+                c.AddSecurityRequirement(securityRequirement);
             });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
